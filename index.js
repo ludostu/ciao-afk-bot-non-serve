@@ -1,20 +1,31 @@
-const mineflayer = require('mineflayer')
+const mineflayer = require('mineflayer');
 
-const bot = mineflayer.createBot({
-  host: 'IP_DEL_SERVER',   // esempio: "mc-qualcosa.aternos.me"
-  port: 25565,
-  username: 'NomeBot'      // il nome che avrà il bot
-})
+function startBot() {
+  const bot = mineflayer.createBot({
+    host: process.env.HOST,        // IP del server Minecraft
+    port: parseInt(process.env.PORT), // Porta del server
+    username: process.env.USERNAME,   // Nome del bot
+    version: process.env.VERSION      // Versione (es: "1.20.4")
+  });
 
-bot.once('spawn', () => {
-  console.log('Bot online!')
+  bot.on('spawn', () => {
+    console.log("✅ Bot connesso al server!");
+    
+    // Movimento automatico
+    bot.setControlState('forward', true);
+  });
 
-  setInterval(() => {
-    bot.chat('Mi muovo di un blocco!')
-    bot.setControlState('forward', true)
+  bot.on('error', (err) => {
+    console.log("❌ Errore:", err.message);
+    console.log("🔄 Riprovo tra 5 secondi...");
+    setTimeout(startBot, 5000);
+  });
 
-    setTimeout(() => {
-      bot.setControlState('forward', false)
-    }, 1000) // cammina per 1 secondo ≈ 1 blocco
-  }, 60 * 1000) // ogni minuto
-})
+  bot.on('end', () => {
+    console.log("⚠️ Disconnesso dal server.");
+    console.log("🔄 Riprovo tra 5 secondi...");
+    setTimeout(startBot, 5000);
+  });
+}
+
+startBot();
